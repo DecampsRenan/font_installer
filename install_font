@@ -1,0 +1,56 @@
+#!/bin/bash
+
+if [ $# -lt 1 ]; then
+    echo -e "Utilisation: install_font [-g] FONTS"
+    echo -e ""
+    echo -e "\tFONT\tPath to the font to install"
+    echo -e "\t-g\tInstall font for all users."
+    exit 0
+fi
+
+## 
+## copy the provided font to the corresponding directory
+## 
+function install {
+    FONT_FILE=$1
+    IS_GLOBAL=$2
+
+    echo -ne "Installing $FONT_FILE"
+    if [ $IS_GLOBAL -ne 0 ]; then echo -en " globally"; fi
+    echo -e "..."
+
+    if [ $IS_GLOBAL -ne 0 ]; then
+        cp $FONT_FILE /usr/share/fonts
+    else
+        cp $FONT_FILE $HOME/.fonts
+    fi
+}
+
+# We check that the path is a real path
+# to a real file
+if [ -f $2 ] && [ -r $2 ]; then
+    
+    # if the user choose to install globally
+    if [ $1 != "-g" ]; then
+        OPT=0
+    else
+        OPT=1
+        shift
+    fi
+
+    # For all font files
+    for FONT_FILE in "$@"; do
+        install $FONT_FILE $OPT
+    done
+
+    echo -e "Updating cache..."
+    fc-cache -f
+    echo -e "Done."
+    echo -e ""
+
+else
+    echo -e "Can't find or copy the provided file."
+    echo -e "Perhaps you should run this script as root or select a valid file."
+    exit -1
+fi
+
